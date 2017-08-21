@@ -12,7 +12,9 @@ var STOP_MESSAGE = "Goodbye!";
 
 
 var SPORT_TENNIS="tennis";
-var MATCHING_ATTRIBUTE_GIVING_LESSON = "Giving Lesson";
+const MATCHING_ATTRIBUTE_GIVING_LESSON = "Giving Lesson";
+const MATCHING_ATTRIBUTE_LOOKING_PARTNER = "Looking Player";
+const MATCHING_ATTRIBUTE_TAKING_LESSON = "Taking Lesson";
 //=========================================================================================================================================
 //Editing anything below this line might break your skill.  
 //=========================================================================================================================================
@@ -39,13 +41,52 @@ var handlers = {
         var speechOutput = '';
         if(requests && requests.length>0) {
         	console.info("Requests found in database. So preparing the options for requests");
-        	speechOutput = prepareSpeechForRequests(requests);
+        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_GIVING_LESSON);
         	this.event.session.attributes.repeatSpeech = speechOutput;
         } else {
 			console.info("There is no requests found in database.");
-			//TODO
+			speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
         }
-        //var speechOutput = 'You are looking for coach. we will help you soon @ <say-as interpret-as="digits">' + requests + '</say-as>';
+        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+    },
+    'PartnerLookupIntent': function () {
+        console.info("Starting PartnerLookupIntent for user " + JSON.stringify(this.event.context.System.user.userId));
+        if(this.event.session.attributes.repeatSpeech) {
+        	this.event.session.attributes.repeatSpeech = null;
+        }
+        this.event.session.attributes.requestType = MATCHING_ATTRIBUTE_LOOKING_PARTNER;
+
+        //var requests = DataHandler.fetchRequestFromDB(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
+        var requests = DataHandler.fetchRequestFromDump(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
+        var speechOutput = '';
+        if(requests && requests.length>0) {
+        	console.info("Requests found in database. So preparing the options for requests");
+        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
+        	this.event.session.attributes.repeatSpeech = speechOutput;
+        } else {
+			console.info("There is no requests found in database.");
+			speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+        }
+        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+    },
+    'TennisStudentIntent': function () {
+        console.info("Starting TennisStudentIntent for user " + JSON.stringify(this.event.context.System.user.userId));
+        if(this.event.session.attributes.repeatSpeech) {
+        	this.event.session.attributes.repeatSpeech = null;
+        }
+        this.event.session.attributes.requestType = MATCHING_ATTRIBUTE_TAKING_LESSON;
+
+        //var requests = DataHandler.fetchRequestFromDB(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_TAKING_LESSON);
+        var requests = DataHandler.fetchRequestFromDump(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_TAKING_LESSON);
+        var speechOutput = '';
+        if(requests && requests.length>0) {
+        	console.info("Requests found in database. So preparing the options for requests");
+        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_TAKING_LESSON);
+        	this.event.session.attributes.repeatSpeech = speechOutput;
+        } else {
+			console.info("There is no requests found in database.");
+			speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+        }
         this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
     },
     'RepeatSpeechIntent': function () {
@@ -130,8 +171,8 @@ var handlers = {
     }
 };
 
-var prepareSpeechForRequests = function (requests) {
-	var speechOutput = 'These people are ' + MATCHING_ATTRIBUTE_GIVING_LESSON + ' for ' + SPORT_TENNIS + ' . ';
+var prepareSpeechForRequests = function (requests, matchingAttr) {
+	var speechOutput = 'These people are ' + matchingAttr + ' for ' + SPORT_TENNIS + ' . ';
 	for(var i = 0, size = requests.length; i < size ; i++) {
 		var request = requests[i];
 		speechOutput += 'option ' + (i+1) + ' . ' + request.name + ' can be reached at <say-as interpret-as="digits"> ' + request.cell + '</say-as> . ';

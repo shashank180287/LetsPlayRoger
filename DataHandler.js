@@ -57,6 +57,7 @@ exports.fetchRequestFromDump = function(event, sport, matchingAttr) {
             "name" : "crona",
             "cell" : "3234567890"
         }];
+        //return null;
 }
 
 exports.fetchUserInformationFromDump = function(event, sport, matchingAttr) {

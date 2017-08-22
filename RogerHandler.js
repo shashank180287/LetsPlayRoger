@@ -36,18 +36,20 @@ var handlers = {
         }
         this.event.session.attributes.requestType = MATCHING_ATTRIBUTE_GIVING_LESSON;
 
-        //var requests = DataHandler.fetchRequestFromDB(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_GIVING_LESSON);
-        var requests = DataHandler.fetchRequestFromDump(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_GIVING_LESSON);
-        var speechOutput = '';
-        if(requests && requests.length>0) {
-        	console.info("Requests found in database. So preparing the options for requests");
-        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_GIVING_LESSON);
-        	this.event.session.attributes.repeatSpeech = speechOutput;
-        } else {
-			console.info("There is no requests found in database.");
-			speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+        var self = this;
+        var getDataFunction = function(requests) {
+           	var speechOutput = '';
+	        if(requests && requests.length>0) {
+	        	console.info("Requests found in database. So preparing the options for requests");
+	        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_GIVING_LESSON);
+	        	self.event.session.attributes.repeatSpeech = speechOutput;
+	        } else {
+				console.info("There is no requests found in database.");
+				speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+	        }
+			self.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
         }
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+        DataHandler.fetchRequestFromDB(getDataFunction, this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_GIVING_LESSON);
     },
     'PartnerLookupIntent': function () {
         console.info("Starting PartnerLookupIntent for user " + JSON.stringify(this.event.context.System.user.userId));
@@ -55,19 +57,21 @@ var handlers = {
         	this.event.session.attributes.repeatSpeech = null;
         }
         this.event.session.attributes.requestType = MATCHING_ATTRIBUTE_LOOKING_PARTNER;
-
-        //var requests = DataHandler.fetchRequestFromDB(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
-        var requests = DataHandler.fetchRequestFromDump(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
-        var speechOutput = '';
-        if(requests && requests.length>0) {
-        	console.info("Requests found in database. So preparing the options for requests");
-        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
-        	this.event.session.attributes.repeatSpeech = speechOutput;
-        } else {
-			console.info("There is no requests found in database.");
-			speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+ 
+     	var self = this;
+        var getDataFunction = function(requests) {
+           	var speechOutput = '';
+	        if(requests && requests.length>0) {
+	        	console.info("Requests found in database. So preparing the options for requests");
+	        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
+	        	self.event.session.attributes.repeatSpeech = speechOutput;
+	        } else {
+				console.info("There is no requests found in database.");
+				speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+	        }
+			self.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
         }
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+        DataHandler.fetchRequestFromDB(getDataFunction, this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_LOOKING_PARTNER);
     },
     'TennisStudentIntent': function () {
         console.info("Starting TennisStudentIntent for user " + JSON.stringify(this.event.context.System.user.userId));
@@ -76,18 +80,20 @@ var handlers = {
         }
         this.event.session.attributes.requestType = MATCHING_ATTRIBUTE_TAKING_LESSON;
 
-        //var requests = DataHandler.fetchRequestFromDB(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_TAKING_LESSON);
-        var requests = DataHandler.fetchRequestFromDump(this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_TAKING_LESSON);
-        var speechOutput = '';
-        if(requests && requests.length>0) {
-        	console.info("Requests found in database. So preparing the options for requests");
-        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_TAKING_LESSON);
-        	this.event.session.attributes.repeatSpeech = speechOutput;
-        } else {
-			console.info("There is no requests found in database.");
-			speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+        var self = this;
+        var getDataFunction = function(requests) {
+           	var speechOutput = '';
+	        if(requests && requests.length>0) {
+	        	console.info("Requests found in database. So preparing the options for requests");
+	        	speechOutput = prepareSpeechForRequests(requests, MATCHING_ATTRIBUTE_TAKING_LESSON);
+	        	self.event.session.attributes.repeatSpeech = speechOutput;
+	        } else {
+				console.info("There is no requests found in database.");
+				speechOutput = 'There is no one I can found you. But if you want to look for anyoone say look . ';
+	        }
+			self.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
         }
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+        DataHandler.fetchRequestFromDB(getDataFunction, this.event, SPORT_TENNIS, MATCHING_ATTRIBUTE_TAKING_LESSON);
     },
     'RepeatSpeechIntent': function () {
         console.info("Starting RepeatSpeechIntent for user " + JSON.stringify(this.event.context.System.user.userId));
@@ -175,7 +181,8 @@ var prepareSpeechForRequests = function (requests, matchingAttr) {
 	var speechOutput = 'These people are ' + matchingAttr + ' for ' + SPORT_TENNIS + ' . ';
 	for(var i = 0, size = requests.length; i < size ; i++) {
 		var request = requests[i];
-		speechOutput += 'option ' + (i+1) + ' . ' + request.name + ' can be reached at <say-as interpret-as="digits"> ' + request.cell + '</say-as> . ';
+		console.info("Preparing statement for name as " + request.Name.S + " and cell number as " + request.Cell.S);
+		speechOutput += 'option ' + (i+1) + ' . ' + request.Name.S + ' can be reached at <say-as interpret-as="digits"> ' + request.Cell.S + '</say-as> . ';
 	}
 	speechOutput += 'If you want to repeat . Say repeat . Or if you want to look anyone else . Say look. If you want to exit . Say exit. ';
 	return speechOutput;	

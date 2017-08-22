@@ -5,37 +5,54 @@ if (typeof Promise === 'undefined') {
 var AWS = require("aws-sdk");
 AWS.config.update({endpoint: "https://dynamodb.us-east-1.amazonaws.com"});
 
-var docClient = new AWS.DynamoDB.DocumentClient();
+var dynamo = new AWS.DynamoDB();
 
-exports.fetchRequestFromDB = function(event, sport, matchingAttr) {
+exports.fetchRequestFromDB = function(callback, event, sport, matchingAttr) {
     var postalCode = AlexaLocation.getPostalCodeForUser(event);
     console.log("Get use postal code as:", postalCode);
     
     var table = "Requests";
     var params = {
         TableName: table,
-        Key:{
-            "Sport": sport,
-            "PostalCode": parseInt(postalCode),
-            "MatchingAttribute": matchingAttr
+        ProjectionExpression: "#name, Cell",
+        FilterExpression: "#sport = :sport AND #postalcode = :postalcode AND #matchingattribute = :matchingattribute AND #userId <> :userId",
+        ExpressionAttributeNames: {
+            "#userId": "UserId",
+            "#sport": "Sport",
+            "#postalcode": "PostalCode",
+            "#matchingattribute": "MatchingAttribute",
+            "#name": "Name"
+        },
+        ExpressionAttributeValues: {
+            ":userId": { "S" : event.context.System.user.userId },
+            ":sport": { "S" : sport },
+            ":postalcode": { "N" : postalCode },
+            ":matchingattribute": { "S" : matchingAttr } 
         }
-    };
+    }
     console.log("Fetching data for postal code as:", postalCode + " sport as " + sport + " matching attribute as " + matchingAttr);
-    //var requests = 
-    var getObjectPromise = docClient.get(params).promise();
-    getObjectPromise.then(function(data) {
-        // if (err) {
-        //     console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
-        //     return null;
-        // } else {
-            console.log("GetItem succeeded:", JSON.stringify(req.data));
-            //return JSON.stringify(req.data);
-        //}
-    }).catch(function(err) {
-      console.error(err);
+    dynamo.scan(params, function(err, data) {
+        console.log("Found data as " + JSON.stringify(data));
+        if (err) {
+            console.log ("Error while scanning the table"+err);
+            callback(null);
+        } else {
+            if(data && data.Items && data.Items.length>0) {
+                var requests = [];
+                callback(data.Items);
+            }
+            else {
+                callback(null);   
+            }
+        }
     });
-   //console.log("Received output as ", requests);
-   //return requests;
+}
+
+exports.fetchUserInformationFromDump = function(event, sport, matchingAttr) {
+    return {
+            "name" : "Makkhi",
+            "cell" : "0987654321"
+        };
 }
 
 exports.storeRequestIntoDB = function(event, sport, matchingAttr) {
@@ -44,25 +61,4 @@ exports.storeRequestIntoDB = function(event, sport, matchingAttr) {
 
 exports.storeUserInfoIntoDB = function(userId, name, mobileNo) {
     
-}
-
-exports.fetchRequestFromDump = function(event, sport, matchingAttr) {
-    return [{
-            "name" : "shashank",
-            "cell" : "1234567890"
-        }, {
-            "name" : "alex",
-            "cell" : "2234567890"
-        },{
-            "name" : "crona",
-            "cell" : "3234567890"
-        }];
-        //return null;
-}
-
-exports.fetchUserInformationFromDump = function(event, sport, matchingAttr) {
-    return {
-            "name" : "Makkhi",
-            "cell" : "0987654321"
-        };
 }

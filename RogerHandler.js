@@ -110,25 +110,29 @@ var handlers = {
         if(this.event.session.attributes.repeatSpeech) {
         	this.event.session.attributes.repeatSpeech = null;
         }
-        var speechOutput = '';
-        var userInfo = DataHandler.fetchUserInformationFromDump(this.event.context.System.user.userId);
-        if(userInfo){
-        	speechOutput = "Do you want to add request for " + userInfo.name + ' at cell <say-as interpret-as="digits"> ' + userInfo.cell + '</say-as> ? '
-        		+ 'If this is correct say yes . otherwise say no . ';
-        } else {
-        	speechOutput = 'We do not have your information. Please tell me your name . ';
+        var self = this;
+        var getUserInformationFunction = function(userInfo) {
+        	var speechOutput = '';
+        	if(userInfo){
+        		console.info("Processed user as : " +  JSON.stringify(userInfo));
+	        	speechOutput = "Do you want to add request for " + userInfo.Name.S + ' at cell <say-as interpret-as="digits"> ' + userInfo.Cell.S + '</say-as> ? '
+	        		+ 'If this is correct say yes . otherwise say no . ';
+	        } else {
+	        	speechOutput = 'We do not have your information. Please tell me your name . ';
+	        }
+	        self.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
         }
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+        DataHandler.fetchUserInformationFromDB(this.event.context.System.user.userId, getUserInformationFunction);        
     },
     'RequestYesIntent': function () {
         console.info("Starting RequestYesIntent for user " + JSON.stringify(this.event.context.System.user.userId));
         if(this.event.session.attributes.repeatSpeech) {
         	this.event.session.attributes.repeatSpeech = null;
         }
-        DataHandler.storeRequestIntoDB(this.event, SPORT_TENNIS, this.event.session.attributes.requestType);
+        DataHandler.storeRequestIntoDB(this.event, null, null, SPORT_TENNIS, this.event.session.attributes.requestType);
         var speechOutput = "Thank you for using Roger. Please come back to us again.";
-        this.event.session.attributes = {};
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+	    this.event.session.attributes = {};
+	    this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
     },
     'RequestNoIntent': function () {
         console.info("Starting RequestNoIntent for user " + JSON.stringify(this.event.context.System.user.userId));
@@ -155,14 +159,33 @@ var handlers = {
         }
         var name = this.event.session.attributes.requesterName;
         var slots = this.event.request.intent.slots; 
-        console.info("User has provided cell no as " + slots.DigitOne.value + slots.DigitTwo.value + slots.DigitThree.value + slots.DigitFour.value + slots.DigitFive.value 
-        		+ slots.DigitSix.value + slots.DigitSeven.value + slots.DigitEight.value + slots.DigitNine.value + slots.DigitTen.value);
-        var cell = slots.DigitOne.value + slots.DigitTwo.value + slots.DigitThree.value + slots.DigitFour.value + slots.DigitFive.value + slots.DigitSix.value +
-        		slots.DigitSeven.value + slots.DigitEight.value + slots.DigitNine.value + slots.DigitTen.value;
-		DataHandler.storeUserInfoIntoDB(this.event.context.System.user.userId, name, cell);
-        DataHandler.storeRequestIntoDB(this.event, SPORT_TENNIS, this.event.session.attributes.requestType);
-        var speechOutput = 'Thank you for using Roger . Please come back to us again. ';
-        this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+
+        var cell="";
+        if(slots.DigitOne.value)
+        	cell+= slots.DigitOne.value;
+        if(slots.DigitTwo.value)
+        	cell+= slots.DigitTwo.value;
+        if(slots.DigitThree.value)
+        	cell+= slots.DigitThree.value;
+        if(slots.DigitFour.value)
+        	cell+= slots.DigitFour.value;
+        if(slots.DigitFive.value)
+        	cell+= slots.DigitFive.value;
+        if(slots.DigitSix.value)
+        	cell+= slots.DigitSix.value;
+        if(slots.DigitSeven.value)
+        	cell+= slots.DigitSeven.value ;
+        if(slots.DigitEight.value)
+        	cell+= slots.DigitEight.value;
+        if(slots.DigitNine.value)
+        	cell+= slots.DigitNine.value ;
+        if(slots.DigitTen.value)
+        	cell+= slots.DigitTen.value;
+
+		console.info("User has provided cell no as " + cell);
+        DataHandler.storeRequestIntoDB(this.event, name, cell, SPORT_TENNIS, this.event.session.attributes.requestType);
+		var speechOutput = 'Thank you for using Roger . Please come back to us again. ';
+    	this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
     },
     'AMAZON.HelpIntent': function () {
         var speechOutput = HELP_MESSAGE;

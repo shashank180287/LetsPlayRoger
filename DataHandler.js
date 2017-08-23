@@ -80,7 +80,7 @@ exports.fetchUserInformationFromDB = function(userId, callback) {
     });
 }
 
-exports.storeRequestIntoDB = function(event, name, mobileNo, sport, matchingAttr) {
+exports.storeRequestIntoDB = function(event, name, mobileNo, sport, matchingAttr, callback) {
     var selfRef = this;
     var userId = event.context.System.user.userId;
     console.log("Looking user is availbale for user id as " + userId);
@@ -120,6 +120,8 @@ exports.storeRequestIntoDB = function(event, name, mobileNo, sport, matchingAttr
                     console.error("Unable to update request. Error JSON:", JSON.stringify(err, null, 2));
                 } else {
                     console.log("Updated request successfully:", JSON.stringify(data, null, 2));
+                    console.log("Self Object is " + JSON.stringify(selfRef));
+                    callback(null);
                 }
             });
         } else {
@@ -142,6 +144,8 @@ exports.storeRequestIntoDB = function(event, name, mobileNo, sport, matchingAttr
                         console.error("Unable to add request. Error JSON:", JSON.stringify(err, null, 2));
                     } else {
                         console.log("Added request successfully:", JSON.stringify(data, null, 2));
+                        console.log("Self Object is " + JSON.stringify(selfRef));
+                        callback(null);
                     }
                 });
             } else {

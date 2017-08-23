@@ -129,10 +129,14 @@ var handlers = {
         if(this.event.session.attributes.repeatSpeech) {
         	this.event.session.attributes.repeatSpeech = null;
         }
-        DataHandler.storeRequestIntoDB(this.event, null, null, SPORT_TENNIS, this.event.session.attributes.requestType);
-        var speechOutput = "Thank you for using Roger. Please come back to us again.";
-	    this.event.session.attributes = {};
-	    this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+        var self = this;
+        var getDataFunction = function(){
+        	var speechOutput = "Thank you for using Roger. Please come back to us again.";
+	        self.event.session.attributes = {};
+	        self.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+        }
+        DataHandler.storeRequestIntoDB(this.event, null, null, SPORT_TENNIS, this.event.session.attributes.requestType, getDataFunction);
+        
     },
     'RequestNoIntent': function () {
         console.info("Starting RequestNoIntent for user " + JSON.stringify(this.event.context.System.user.userId));
@@ -157,9 +161,9 @@ var handlers = {
         if(this.event.session.attributes.repeatSpeech) {
         	this.event.session.attributes.repeatSpeech = null;
         }
+        var self = this;
         var name = this.event.session.attributes.requesterName;
         var slots = this.event.request.intent.slots; 
-
         var cell="";
         if(slots.DigitOne.value)
         	cell+= slots.DigitOne.value;
@@ -181,11 +185,13 @@ var handlers = {
         	cell+= slots.DigitNine.value ;
         if(slots.DigitTen.value)
         	cell+= slots.DigitTen.value;
-
 		console.info("User has provided cell no as " + cell);
-        DataHandler.storeRequestIntoDB(this.event, name, cell, SPORT_TENNIS, this.event.session.attributes.requestType);
-		var speechOutput = 'Thank you for using Roger . Please come back to us again. ';
-    	this.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+        var storeDataFunction = function() {
+			var speechOutput = 'Thank you for using Roger . Please come back to us again. ';
+        	self.emit(':tellWithCard', speechOutput, SKILL_NAME, speechOutput);
+		}
+        DataHandler.storeRequestIntoDB(this.event, name, cell, SPORT_TENNIS, this.event.session.attributes.requestType, storeDataFunction);
+
     },
     'AMAZON.HelpIntent': function () {
         var speechOutput = HELP_MESSAGE;
